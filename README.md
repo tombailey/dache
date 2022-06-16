@@ -7,7 +7,7 @@ This is a super simple and not very feature-complete durable cache (dache). Righ
 ## Getting started
 
 ```dockerfile
-FROM tombailey256/dache:0.1.0
+FROM tombailey256/dache:0.1.1
 
 ENV DURABILITY_ENGINE="postgres"
 ENV POSTGRES_HOST="postgres"
