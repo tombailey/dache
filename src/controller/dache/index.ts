@@ -1,17 +1,21 @@
 import DurabilityEngine, { CacheEntryMap } from "../../engine";
 import NotFoundError from "../../error/notFound";
 import CacheEntry from "../../entity/cacheEntry";
+import Lock from "../../lock";
 
 export default class DacheController {
   private readonly cacheEntryMap: CacheEntryMap;
   private readonly durabilityEngine: DurabilityEngine;
+  private readonly lock: Lock;
 
   constructor(
     cacheEntryMap: CacheEntryMap,
-    durabilityEngine: DurabilityEngine
+    durabilityEngine: DurabilityEngine,
+    lock: Lock
   ) {
     this.cacheEntryMap = cacheEntryMap;
     this.durabilityEngine = durabilityEngine;
+    this.lock = lock;
   }
 
   getValue(key: string): string {
@@ -29,15 +33,19 @@ export default class DacheController {
   }
 
   async setValue(entry: CacheEntry): Promise<void> {
-    await this.durabilityEngine.set(entry);
-    this.cacheEntryMap.set(entry.key, {
-      value: entry.value,
-      expiry: entry.expiry,
+    await this.lock.acquire(entry.key, async () => {
+      await this.durabilityEngine.set(entry);
+      this.cacheEntryMap.set(entry.key, {
+        value: entry.value,
+        expiry: entry.expiry,
+      });
     });
   }
 
   async deleteValue(key: string): Promise<void> {
-    await this.durabilityEngine.remove(key);
-    this.cacheEntryMap.delete(key);
+    await this.lock.acquire(key, async () => {
+      await this.durabilityEngine.remove(key);
+      this.cacheEntryMap.delete(key);
+    });
   }
 }
