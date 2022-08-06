@@ -8,7 +8,7 @@ durability engines are supported.
 ## Getting started
 
 ```dockerfile
-FROM tombailey256/dache:0.1.1
+FROM tombailey256/dache:0.2.0
 
 ENV DURABILITY_ENGINE="postgres"
 ENV POSTGRES_HOST="postgres"
