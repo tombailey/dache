@@ -2,7 +2,8 @@
 
 ## Introduction
 
-This is a super simple and not very feature-complete durable cache (dache). Right now, postgres is the only supported durability engine.
+This is a super simple and not very feature-complete durable cache (dache). Right now, only in-memory and postgres
+durability engines are supported.
 
 ## Getting started
 
@@ -46,20 +47,42 @@ $> curl -XDELETE localhost/dache/myKey
 204 No content
 ```
 
-
 ## Durability
 
-Dache is able to survive crashes, node failure, etc by storing entries using a durability engine.
+Dache is able to survive crashes, node failure, etc by storing messages using a durability engine.
 
-When dache starts, it creates an in-memory cache so it can skip the durability engine and reduce latency for read options. However, set and delete operations still require interaction with the durability engine in order to support durability.
+When dache starts, it creates an in-memory cache so it can skip the durability engine and reduce latency for read
+options. However, set and delete operations still require interaction with the durability engine in order to support
+durability.
 
-Right now, postgres is the only supported durability engine.
+Note, if the durability engine is unavailable after dache has populated it's in-memory cache, read operations will
+succeed but set and delete operations will fail.
 
-Note, if the durability engine is unavailable after dache has populated it's in-memory cache, read operations will succeed but set and delete operations will fail.
+The following durability engines are supported:
+
+### In-memory
+
+Stores entries in-memory. There is no durability if dache is restarted or crashes.
+
+```sh
+export DURABILITY_ENGINE="memory"
+```
+
+### Postgres
+
+```sh
+export DURABILITY_ENGINE="postgres"
+export POSTGRES_HOST="postgres"
+export POSTGRES_PORT=5432
+export POSTGRES_USER="user"
+export POSTGRES_PASSWORD="password"
+export POSTGRES_DATABASE="database"
+```
 
 ## Health check
 
-Dache has a built-in health check endpoint (`/health`) to confirm that it is working correctly. At the moment, it does NOT confirm that the durability engine is working correctly.
+Dache has a built-in health check endpoint (`/health`) to confirm that it is working correctly. At the moment, it does
+NOT confirm that the durability engine is working correctly.
 
 ## Future work
 
