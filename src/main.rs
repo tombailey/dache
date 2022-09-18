@@ -4,7 +4,7 @@ use std::env;
 
 use actix_web::{App, HttpServer, web};
 
-use crate::key_value::{Creation, DurabilityEngine, MemoryKeyValueStore};
+use crate::key_value::{Creation, DurabilityEngine, GenericKeyValueStore, KeyValueStore, MemoryKeyValueStore};
 use crate::router::{get_entry, get_health, remove_entry, set_entry};
 
 mod router;
@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     )
         .expect("Invalid durability engine.");
 
-    let store = MemoryKeyValueStore::create();
+    let store: Box<GenericKeyValueStore> = Box::new(MemoryKeyValueStore::create());
     let app_data = web::Data::new(store);
 
     HttpServer::new(move || {

@@ -23,6 +23,8 @@ pub trait MutableKeyValueStore {
 #[async_trait]
 pub trait KeyValueStore: ImmutableKeyValueStore + MutableKeyValueStore {}
 
+pub type GenericKeyValueStore = dyn KeyValueStore + Sync + Send;
+
 #[derive(Serialize, Deserialize)]
 pub struct Entry {
     // TODO: include expiry

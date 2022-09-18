@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use tokio::sync::RwLock;
 
 use crate::key_value::{Entry, ImmutableKeyValueStore, KeyValueStoreError, MutableKeyValueStore};
+use crate::KeyValueStore;
 
 pub struct MemoryKeyValueStore {
     values: Arc<RwLock<HashMap<String, String>>>,
@@ -51,6 +52,8 @@ impl MutableKeyValueStore for MemoryKeyValueStore {
         Ok(())
     }
 }
+
+impl KeyValueStore for MemoryKeyValueStore {}
 
 pub trait Creation {
     fn create() -> MemoryKeyValueStore;
