@@ -8,8 +8,10 @@ durability engines are supported.
 ## Getting started
 
 ```dockerfile
-FROM tombailey256/dache:0.2.0
+FROM tombailey256/dache:0.3.0
 
+# you can redact your cache keys so don't show up in the request logs
+ENV LOGGING_REDACT_KEYS="false"
 ENV DURABILITY_ENGINE="postgres"
 ENV POSTGRES_HOST="postgres"
 ENV POSTGRES_PORT=5432
