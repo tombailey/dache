@@ -12,6 +12,7 @@ services:
   dache:
     build: .
     environment:
+      LOGGING_REDACT_KEYS: false
       DURABILITY_ENGINE: postgres
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
