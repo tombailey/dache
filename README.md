@@ -10,7 +10,7 @@ durability engines are supported.
 ```dockerfile
 FROM tombailey256/dache:0.3.0
 
-# you can redact your cache keys so don't show up in the request logs
+# you can redact your cache keys so they don't show up in the request logs
 ENV LOGGING_REDACT_KEYS="false"
 ENV DURABILITY_ENGINE="postgres"
 ENV POSTGRES_HOST="postgres"
