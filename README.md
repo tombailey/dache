@@ -2,22 +2,15 @@
 
 ## Introduction
 
-This is a super simple and not very feature-complete durable cache (dache). Right now, only in-memory and postgres
-durability engines are supported.
+This is a super simple and not very feature-complete durable cache (dache). Right now, only the in-memory durability
+engine is supported.
 
 ## Getting started
 
 ```dockerfile
-FROM tombailey256/dache:0.3.0
+FROM tombailey256/dache:0.0.0
 
-# you can redact your cache keys so they don't show up in the request logs
-ENV LOGGING_REDACT_KEYS="false"
-ENV DURABILITY_ENGINE="postgres"
-ENV POSTGRES_HOST="postgres"
-ENV POSTGRES_PORT=5432
-ENV POSTGRES_USER="user"
-ENV POSTGRES_PASSWORD="password"
-ENV POSTGRES_DATABASE="database"
+ENV DURABILITY_ENGINE="memory"
 
 ENV PORT = 8080
 ```
@@ -37,7 +30,7 @@ $> curl -XGET localhost/dache/myKey
 
 ### Set entry
 ```text
-$> curl -XPOST localhost/dache/myKey -d { "value": "myValue", "expiry": 1735689600 }
+$> curl -XPOST localhost/dache/myKey -d { "value": "myValue" }
 204 No content
 ```
 
@@ -68,17 +61,6 @@ Stores entries in-memory. There is no durability if dache is restarted or crashe
 
 ```sh
 export DURABILITY_ENGINE="memory"
-```
-
-### Postgres
-
-```sh
-export DURABILITY_ENGINE="postgres"
-export POSTGRES_HOST="postgres"
-export POSTGRES_PORT=5432
-export POSTGRES_USER="user"
-export POSTGRES_PASSWORD="password"
-export POSTGRES_DATABASE="database"
 ```
 
 ## Health check
