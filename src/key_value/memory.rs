@@ -1,73 +1,98 @@
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use async_trait::async_trait;
-use tokio::sync::RwLock;
+use dashmap::DashMap;
 
-use crate::key_value::{Entry, ImmutableKeyValueStore, KeyValueStoreError, MutableKeyValueStore};
-use crate::KeyValueStore;
+use crate::key_value::{AllEntriesKeyValueStore, Creation, DurableKeyValueStore, Entry, GenericDurableKeyValueStore, ImmutableKeyValueStore, InitializableKeyValueStore, KeyValueStore, KeyValueStoreError, MutableKeyValueStore};
 
 pub struct MemoryKeyValueStore {
-    values: Arc<RwLock<HashMap<String, String>>>,
+    values: DashMap<String, String>,
+}
+
+
+impl KeyValueStore for MemoryKeyValueStore {}
+
+impl DurableKeyValueStore for MemoryKeyValueStore {}
+
+#[async_trait]
+impl InitializableKeyValueStore for MemoryKeyValueStore {
+    async fn initialize(&self) -> Result<(), KeyValueStoreError> {
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl AllEntriesKeyValueStore for MemoryKeyValueStore {
+    async fn get_all_entries(&self) -> Result<HashMap<String, Entry>, KeyValueStoreError> {
+        let mut key_to_value: HashMap<String, Entry> = HashMap::new();
+        self.values.iter().for_each(|entry| {
+            key_to_value.insert(
+                entry.key().to_owned(),
+                Entry {
+                    key: entry.key().to_owned(),
+                    value: entry.value().to_owned(),
+                },
+            );
+        });
+        Ok(key_to_value)
+    }
+
+    async fn remove_all_entries(&self) -> Result<(), KeyValueStoreError> {
+        self.values.clear();
+        Ok(())
+    }
 }
 
 #[async_trait]
 impl ImmutableKeyValueStore for MemoryKeyValueStore {
-    async fn get(
-        &self, key: &str,
-    ) -> Result<Option<Entry>, KeyValueStoreError> {
-        self.values.read()
-            .await
-            .get(key)
-            .map_or(
-                Ok(None),
-                |value| Ok(
-                    Some(
-                        Entry {
-                            value: value.to_owned()
-                        }
-                    )
-                ),
-            )
+    async fn get(&self, key: &str) -> Result<Option<Entry>, KeyValueStoreError> {
+        Ok(
+            self.values.get(key).map(|entry| {
+                Entry {
+                    key: entry.key().to_owned(),
+                    value: entry.value().to_owned(),
+                }
+            })
+        )
     }
 }
 
 #[async_trait]
 impl MutableKeyValueStore for MemoryKeyValueStore {
-    async fn set(
-        &self, key: String, value: String,
-    ) -> Result<(), KeyValueStoreError> {
-        self.values.write()
-            .await
-            .insert(key, value);
+    async fn set(&self, key: &str, value: &str) -> Result<(), KeyValueStoreError> {
+        self.values.insert(key.to_owned(), value.to_owned());
         Ok(())
     }
 
-    async fn remove(
-        &self, key: &str,
-    ) -> Result<(), KeyValueStoreError> {
-        self.values.write()
-            .await
-            .remove(key);
+    async fn remove(&self, key: &str) -> Result<(), KeyValueStoreError> {
+        self.values.remove(key);
         Ok(())
     }
 }
 
-impl KeyValueStore for MemoryKeyValueStore {}
+#[async_trait]
+impl Creation for MemoryKeyValueStore {
+    async fn create() -> Result<Box<dyn GenericDurableKeyValueStore>, KeyValueStoreError> {
+        Ok(
+            Box::new(
+                Self::create_with(HashMap::new())
+            )
+        )
+    }
+}
 
-pub trait Creation {
-    fn create() -> MemoryKeyValueStore;
+trait ParameterizedCreation {
     fn create_with(initial: HashMap<String, String>) -> MemoryKeyValueStore;
 }
 
-impl Creation for MemoryKeyValueStore {
-    fn create() -> MemoryKeyValueStore {
-        Self::create_with(HashMap::new())
-    }
-
+impl ParameterizedCreation for MemoryKeyValueStore {
     fn create_with(initial: HashMap<String, String>) -> MemoryKeyValueStore {
+        let dash_map: DashMap<String, String> = DashMap::new();
+        initial.iter().for_each(|(key, value)| {
+            dash_map.insert(key.to_owned(), value.to_owned());
+        });
         MemoryKeyValueStore {
-            values: Arc::new(RwLock::new(initial))
+            values: dash_map,
         }
     }
 }

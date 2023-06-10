@@ -3,7 +3,15 @@ use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Debug)]
 pub enum KeyValueStoreError {
-    InvalidState
+    InvalidState,
+    InvalidConfiguration { reason: String },
+    StoreError { error: Box<dyn Error> },
+}
+
+impl KeyValueStoreError {
+    pub fn invalid_configuration(reason: String) -> KeyValueStoreError {
+        KeyValueStoreError::InvalidConfiguration { reason }
+    }
 }
 
 impl Display for KeyValueStoreError {
