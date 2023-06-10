@@ -4,11 +4,13 @@ use std::env;
 
 use actix_web::{App, HttpServer, web};
 
-use crate::key_value::{Creation, DurabilityEngine, GenericDurableKeyValueStore, KeyValueStoreError, MemoryKeyValueStore, PostgresKeyValueStore};
+use crate::key_value::{DurabilityEngine, GenericDurableKeyValueStore, KeyValueStoreError, MemoryKeyValueStore, PostgresKeyValueStore};
 use crate::router::{get_entry, get_health, remove_entry, set_entry};
 
 mod key_value;
 mod router;
+#[cfg(test)]
+mod tests;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -42,10 +44,10 @@ async fn main() -> std::io::Result<()> {
 async fn create_durable_key_value_store(
     engine: DurabilityEngine
 ) -> Result<Box<dyn GenericDurableKeyValueStore>, KeyValueStoreError> {
-    let durability_engine = match engine {
-        DurabilityEngine::Memory => MemoryKeyValueStore::create().await,
-        DurabilityEngine::Postgres => PostgresKeyValueStore::create().await,
-    }?;
+    let durability_engine: Box<dyn GenericDurableKeyValueStore> = match engine {
+        DurabilityEngine::Memory => Box::<MemoryKeyValueStore>::default(),
+        DurabilityEngine::Postgres => Box::new(PostgresKeyValueStore::create().await?),
+    };
 
     durability_engine.initialize().await?;
     Ok(durability_engine)

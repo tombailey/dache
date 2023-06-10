@@ -45,7 +45,7 @@ pub trait DurableKeyValueStore: InitializableKeyValueStore + AllEntriesKeyValueS
 
 pub trait GenericDurableKeyValueStore = DurableKeyValueStore + Sync + Send;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Entry {
     // TODO: include expiry
     pub key: String,
@@ -68,9 +68,4 @@ impl DurabilityEngine {
             .find(|engine| value.to_lowercase() == engine.to_string().to_lowercase())
             .cloned()
     }
-}
-
-#[async_trait]
-pub trait Creation {
-    async fn create() -> Result<Box<dyn GenericDurableKeyValueStore>, KeyValueStoreError>;
 }

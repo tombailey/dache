@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use async_trait::async_trait;
 use dashmap::DashMap;
 
-use crate::key_value::{AllEntriesKeyValueStore, Creation, DurableKeyValueStore, Entry, GenericDurableKeyValueStore, ImmutableKeyValueStore, InitializableKeyValueStore, KeyValueStore, KeyValueStoreError, MutableKeyValueStore};
+use crate::key_value::{AllEntriesKeyValueStore, DurableKeyValueStore, Entry, ImmutableKeyValueStore, InitializableKeyValueStore, KeyValueStore, KeyValueStoreError, MutableKeyValueStore};
 
 pub struct MemoryKeyValueStore {
     values: DashMap<String, String>,
@@ -70,14 +70,9 @@ impl MutableKeyValueStore for MemoryKeyValueStore {
     }
 }
 
-#[async_trait]
-impl Creation for MemoryKeyValueStore {
-    async fn create() -> Result<Box<dyn GenericDurableKeyValueStore>, KeyValueStoreError> {
-        Ok(
-            Box::new(
-                Self::create_with(HashMap::new())
-            )
-        )
+impl Default for MemoryKeyValueStore {
+    fn default() -> MemoryKeyValueStore {
+        Self::create_with(HashMap::new())
     }
 }
 

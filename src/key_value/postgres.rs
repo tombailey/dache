@@ -6,7 +6,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use tokio_postgres::{Client, NoTls, SimpleQueryMessage, SimpleQueryRow};
 
-use crate::key_value::{AllEntriesKeyValueStore, Creation, DurableKeyValueStore, Entry, GenericDurableKeyValueStore, ImmutableKeyValueStore, InitializableKeyValueStore, KeyValueStore, KeyValueStoreError, MutableKeyValueStore};
+use crate::key_value::{AllEntriesKeyValueStore, DurableKeyValueStore, Entry, ImmutableKeyValueStore, InitializableKeyValueStore, KeyValueStore, KeyValueStoreError, MutableKeyValueStore};
 
 pub struct PostgresKeyValueStore {
     client: Arc<Client>,
@@ -158,9 +158,8 @@ fn require_env_var(name: &str) -> Result<String, KeyValueStoreError> {
         })
 }
 
-#[async_trait]
-impl Creation for PostgresKeyValueStore {
-    async fn create() -> Result<Box<dyn GenericDurableKeyValueStore>, KeyValueStoreError> {
+impl PostgresKeyValueStore {
+    pub async fn create() -> Result<PostgresKeyValueStore, KeyValueStoreError> {
         let host = require_env_var("POSTGRES_HOST")?;
         let port = require_env_var("POSTGRES_PORT")?
             .parse::<u16>()
@@ -185,9 +184,7 @@ impl Creation for PostgresKeyValueStore {
             connection.await.expect("Postgres connection error");
         });
 
-        Ok(
-            Box::new(PostgresKeyValueStore::create_with(client))
-        )
+        Ok(PostgresKeyValueStore::create_with(client))
     }
 }
 
