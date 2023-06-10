@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-slim as builder
+FROM ghcr.io/instrumentisto/rust:nightly-slim-2023-06-07 as builder
 
 WORKDIR /app
 
